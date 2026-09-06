@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM
+  const from = process.env.EMAIL_FROM?.trim().replace(/^["']|["']$/g, "")
   if (!apiKey || !from) {
     return NextResponse.json({ ok: true, skipped: true })
   }

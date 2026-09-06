@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM
+  const from = process.env.EMAIL_FROM?.trim().replace(/^["']|["']$/g, "")
   if (!apiKey || !from) {
     return NextResponse.json({ ok: true, skipped: true })
   }
@@ -48,5 +48,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, sent: to.length })
+  return NextResponse.json({ ok: true, sent: to.length, from })
 }

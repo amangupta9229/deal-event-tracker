@@ -32,6 +32,8 @@ export function MailStatsButton() {
       const payload = (await response.json()) as {
         error?: string
         skipped?: boolean
+        from?: string
+        sent?: number
       }
       if (!response.ok) {
         setMessage(payload.error ?? "Could not send email.")
@@ -43,10 +45,9 @@ export function MailStatsButton() {
         )
         return
       }
+      const count = payload.sent ?? recipients.length
       setMessage(
-        recipients.length === 1
-          ? `Open-ticket stats emailed to ${recipients[0]}.`
-          : `Open-ticket stats emailed to ${recipients.length} people.`
+        `Sent to ${count} ${count === 1 ? "person" : "people"} from ${payload.from ?? "unknown"}.`
       )
     } catch {
       setMessage("Could not send email.")
