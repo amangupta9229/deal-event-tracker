@@ -10,6 +10,19 @@ export function getActiveOwners(data: AppData): Profile[] {
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
 }
 
+export function getStatsEmailRecipients(data: AppData): string[] {
+  const seen = new Set<string>()
+  const emails: string[] = []
+  for (const profile of data.profiles) {
+    if (!profile.is_active) continue
+    const email = profile.email.trim().toLowerCase()
+    if (!email.includes("@") || seen.has(email)) continue
+    seen.add(email)
+    emails.push(email)
+  }
+  return emails
+}
+
 export function getDealLastActivity(data: AppData, dealId: string): string {
   const deal = data.deals.find((item) => item.id === dealId)
   const timestamps = data.events

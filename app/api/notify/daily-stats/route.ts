@@ -1,24 +1,29 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
-import { TEST_STATS_EMAIL } from "@/lib/email/constants"
 import { buildDailySummaryHtml } from "@/lib/email/daily-summary"
+import { getStatsEmailRecipients } from "@/lib/queries"
 import type { AppData } from "@/types"
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
-    to?: string
+    to?: string | string[]
     data?: AppData
     appUrl?: string
   }
 
-  const to = body.to?.trim() || TEST_STATS_EMAIL
-  if (!to.includes("@")) {
-    return NextResponse.json({ error: "Missing recipient." }, { status: 400 })
-  }
   if (!body.data?.events || !body.data.profiles) {
     return NextResponse.json({ error: "Missing event data." }, { status: 400 })
+  }
+
+  const requested = Array.isArray(body.to) ? body.to : body.to ? [body.to] : []
+  const to = (requested.length > 0 ? requested : getStatsEmailRecipients(body.data))
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => item.includes("@"))
+
+  if (to.length === 0) {
+    return NextResponse.json({ error: "Missing recipient." }, { status: 400 })
   }
 
   const apiKey = process.env.RESEND_API_KEY
@@ -43,5 +48,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, sent: to.length })
 }

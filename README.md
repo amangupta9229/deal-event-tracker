@@ -80,7 +80,7 @@ The `handle_new_user` trigger copies Auth users into `profiles`. Admin-created u
 
 Vercel Cron calls `GET /api/cron/daily-summary` at **08:00 India Standard Time** (`30 2 * * *` UTC). Set `CRON_SECRET`; Vercel sends `Authorization: Bearer $CRON_SECRET`.
 
-The email lists every **open** event, sorted Urgent → High → Normal → Low, oldest first within a priority. Recipients are active users with role `owner`.
+The email lists every **open** event, sorted Urgent → High → Normal → Low, oldest first within a priority. Recipients are every **active** admin, owner, and team member.
 
 Change the schedule in [`vercel.json`](vercel.json) if needed.
 

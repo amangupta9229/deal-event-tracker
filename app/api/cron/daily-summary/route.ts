@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { buildDailySummaryHtml } from "@/lib/email/daily-summary"
 import { createServiceRoleClient } from "@/lib/supabase/admin"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
-import { getActiveOwners } from "@/lib/queries"
+import { getStatsEmailRecipients } from "@/lib/queries"
 import type { AppData } from "@/types"
 
 export const runtime = "nodejs"
@@ -65,16 +65,16 @@ export async function GET(request: Request) {
     comments: comments.data ?? [],
   }
 
-  const owners = getActiveOwners(data)
-  if (owners.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, reason: "no_owners" })
+  const recipients = getStatsEmailRecipients(data)
+  if (recipients.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, reason: "no_recipients" })
   }
 
   const html = buildDailySummaryHtml(data, appUrl)
   const resend = new Resend(apiKey)
   const { error } = await resend.emails.send({
     from,
-    to: owners.map((owner) => owner.email),
+    to: recipients,
     subject: "Defpro Global — open tickets",
     html,
   })
@@ -83,5 +83,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, sent: owners.length })
+  return NextResponse.json({ ok: true, sent: recipients.length })
 }

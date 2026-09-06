@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { TEST_STATS_EMAIL } from "@/lib/email/constants"
+import { getStatsEmailRecipients } from "@/lib/queries"
 import { useAppStore } from "@/lib/store/context"
 
 export function MailStatsButton() {
@@ -11,6 +11,12 @@ export function MailStatsButton() {
   const [sending, setSending] = useState(false)
 
   async function handleSend() {
+    const recipients = getStatsEmailRecipients(data)
+    if (recipients.length === 0) {
+      setMessage("No active users to email.")
+      setSending(false)
+      return
+    }
     setSending(true)
     setMessage(null)
     try {
@@ -18,7 +24,7 @@ export function MailStatsButton() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to: TEST_STATS_EMAIL,
+          to: recipients,
           data,
           appUrl: window.location.origin,
         }),
@@ -37,7 +43,11 @@ export function MailStatsButton() {
         )
         return
       }
-      setMessage(`Open-ticket stats emailed to ${TEST_STATS_EMAIL}.`)
+      setMessage(
+        recipients.length === 1
+          ? `Open-ticket stats emailed to ${recipients[0]}.`
+          : `Open-ticket stats emailed to ${recipients.length} people.`
+      )
     } catch {
       setMessage("Could not send email.")
     } finally {
