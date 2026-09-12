@@ -77,6 +77,64 @@ export function countUrgentOpenEvents(data: AppData, dealId: string): number {
   ).length
 }
 
+export function countEventsByStatus(
+  data: AppData,
+  dealId: string,
+  status: DealEvent["status"]
+): number {
+  return data.events.filter(
+    (event) => event.deal_id === dealId && event.status === status
+  ).length
+}
+
+export function sortResolvedNewestFirst(events: DealEvent[]): DealEvent[] {
+  return [...events].sort((a, b) =>
+    (b.done_at ?? b.updated_at).localeCompare(a.done_at ?? a.updated_at)
+  )
+}
+
+export function getUserActionStats(data: AppData) {
+  return data.profiles
+    .filter((profile) => profile.role !== "admin")
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((profile) => {
+      const resolved = data.events.filter(
+        (event) =>
+          event.done_by === profile.id &&
+          (event.status === "closed" || event.status === "na")
+      )
+      const byPriority = {
+        urgent: 0,
+        high: 0,
+        normal: 0,
+        low: 0,
+      }
+      let totalMs = 0
+      let timed = 0
+      for (const event of resolved) {
+        byPriority[event.priority] += 1
+        if (event.done_at) {
+          const ms =
+            new Date(event.done_at).getTime() - new Date(event.created_at).getTime()
+          if (ms >= 0) {
+            totalMs += ms
+            timed += 1
+          }
+        }
+      }
+      return {
+        profile,
+        openAssigned: data.events.filter(
+          (event) => event.status === "open" && event.assigned_to === profile.id
+        ).length,
+        done: resolved.filter((event) => event.status === "closed").length,
+        na: resolved.filter((event) => event.status === "na").length,
+        byPriority,
+        avgMs: timed > 0 ? totalMs / timed : null,
+      }
+    })
+}
+
 export function sortEventsNewestFirst(events: DealEvent[]): DealEvent[] {
   return [...events].sort((a, b) => b.created_at.localeCompare(a.created_at))
 }

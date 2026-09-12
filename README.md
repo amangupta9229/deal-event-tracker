@@ -66,7 +66,7 @@ Until a company sending domain is verified in Resend, keep `EMAIL_FROM` on `onbo
 
 1. Create a Supabase project.
 2. Keep **Email** auth enabled. Turn **off** public signup. Users are created by an admin (or the first user below).
-3. Run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) in the SQL editor, then [`supabase/migrations/0002_assigned_to.sql`](supabase/migrations/0002_assigned_to.sql).
+3. Run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) in the SQL editor, then [`0002_assigned_to.sql`](supabase/migrations/0002_assigned_to.sql) and [`0003_delete_and_service_updates.sql`](supabase/migrations/0003_delete_and_service_updates.sql).
 4. Create the first admin in **Authentication → Users → Add user** (email + password, auto-confirm).
 5. Promote that user:
 

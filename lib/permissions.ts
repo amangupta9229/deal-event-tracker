@@ -27,3 +27,15 @@ export function canSeeOpenEventsInbox(role: UserRole): boolean {
 export function canSendStatsEmail(role: UserRole): boolean {
   return role === "owner" || role === "admin"
 }
+
+export function canDeleteEvent(role: UserRole): boolean {
+  return role === "owner" || role === "admin"
+}
+
+export function canDeleteDeal(role: UserRole): boolean {
+  return role === "admin"
+}
+
+export function canDeleteUser(role: UserRole): boolean {
+  return role === "admin"
+}

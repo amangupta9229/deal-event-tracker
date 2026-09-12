@@ -73,6 +73,15 @@ export function formatEmailCreatedAt(iso: string): string {
   }).format(date)
 }
 
+export function formatDurationMs(ms: number): string {
+  const minutes = Math.round(ms / 60_000)
+  if (minutes < 60) return `${Math.max(1, minutes)} min`
+  const hours = minutes / 60
+  if (hours < 24) return `${hours < 10 ? hours.toFixed(1) : Math.round(hours)} hr`
+  const days = hours / 24
+  return `${days < 10 ? days.toFixed(1) : Math.round(days)} days`
+}
+
 export function nowIso(): string {
   return new Date().toISOString()
 }

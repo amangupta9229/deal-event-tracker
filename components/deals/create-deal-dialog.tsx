@@ -96,7 +96,11 @@ export function CreateDealDialog() {
             </div>
             <div className="grid gap-2">
               <Label>Assigned to</Label>
-              <AssigneeSelect value={assignedTo} onChange={setAssignedTo} />
+              <AssigneeSelect
+                requireConfirm={false}
+                value={assignedTo}
+                onChange={setAssignedTo}
+              />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>

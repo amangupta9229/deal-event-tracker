@@ -32,7 +32,7 @@ function NavLinks({
     { href: "/deals", label: "Orders", icon: Briefcase, show: true },
     {
       href: "/pending-reviews",
-      label: "Open actions",
+      label: "Actions",
       icon: Inbox,
       show: canSeeOpenEventsInbox(user.role),
     },

@@ -52,4 +52,7 @@ export interface AppStoreValue {
   createUser: (input: CreateUserInput) => Profile | Promise<Profile>
   updateUserRole: (userId: string, role: UserRole) => void | Promise<void>
   setUserActive: (userId: string, isActive: boolean) => void | Promise<void>
+  deleteEvent: (eventId: string) => void | Promise<void>
+  deleteDeal: (dealId: string) => void | Promise<void>
+  deleteUser: (userId: string) => void | Promise<void>
 }

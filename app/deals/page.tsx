@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth/session"
 import { notifyUserAssigned } from "@/lib/email/notify-assignment"
 import { formatRelativeActivity } from "@/lib/format"
 import {
+  countEventsByStatus,
   countOpenEvents,
   countUrgentOpenEvents,
   getDealLastActivity,
@@ -66,8 +67,10 @@ function OrdersDashboard() {
               <TableRow>
                 <TableHead>Order</TableHead>
                 <TableHead>Assigned to</TableHead>
-                <TableHead className="text-right">Open actions</TableHead>
+                <TableHead className="text-right">Open</TableHead>
                 <TableHead className="text-right">Urgent</TableHead>
+                <TableHead className="text-right">Done</TableHead>
+                <TableHead className="text-right">NA</TableHead>
                 <TableHead>Last activity</TableHead>
               </TableRow>
             </TableHeader>
@@ -85,6 +88,7 @@ function OrdersDashboard() {
                     <TableCell>
                       {canChange ? (
                         <AssigneeSelect
+                          confirmKind="order"
                           value={deal.assigned_to}
                           onChange={(next) => {
                             if (next === deal.assigned_to) return
@@ -115,6 +119,12 @@ function OrdersDashboard() {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {countUrgentOpenEvents(data, deal.id)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {countEventsByStatus(data, deal.id, "closed")}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {countEventsByStatus(data, deal.id, "na")}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatRelativeActivity(lastActivity)}

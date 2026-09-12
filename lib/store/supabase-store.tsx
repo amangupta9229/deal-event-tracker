@@ -254,6 +254,38 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
     [refresh]
   )
 
+  const deleteEvent = useCallback(
+    async (eventId: string) => {
+      const supabase = createBrowserSupabaseClient()
+      const { error } = await supabase.from("events").delete().eq("id", eventId)
+      throwIfError(error)
+      await refresh()
+    },
+    [refresh]
+  )
+
+  const deleteDeal = useCallback(
+    async (dealId: string) => {
+      const supabase = createBrowserSupabaseClient()
+      const { error } = await supabase.from("deals").delete().eq("id", dealId)
+      throwIfError(error)
+      await refresh()
+    },
+    [refresh]
+  )
+
+  const deleteUser = useCallback(
+    async (userId: string) => {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      })
+      const payload = (await response.json()) as { error?: string }
+      if (!response.ok) throw new Error(payload.error ?? "Could not delete user.")
+      await refresh()
+    },
+    [refresh]
+  )
+
   const value = useMemo<AppStoreValue>(
     () => ({
       hydrated,
@@ -268,6 +300,9 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       createUser,
       updateUserRole,
       setUserActive,
+      deleteEvent,
+      deleteDeal,
+      deleteUser,
     }),
     [
       hydrated,
@@ -282,6 +317,9 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       createUser,
       updateUserRole,
       setUserActive,
+      deleteEvent,
+      deleteDeal,
+      deleteUser,
     ]
   )
 

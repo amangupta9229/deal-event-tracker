@@ -64,6 +64,7 @@ export interface Database {
           name?: string
           status?: DealStatus
           assigned_to?: string
+          created_by?: string
           updated_at?: string
         }
         Relationships: Relationship[]
@@ -98,6 +99,7 @@ export interface Database {
         Update: {
           status?: EventStatus
           assigned_to?: string
+          created_by?: string
           done_by?: string | null
           done_at?: string | null
           updated_at?: string
@@ -121,6 +123,7 @@ export interface Database {
         }
         Update: {
           comment?: string
+          author_id?: string
         }
         Relationships: Relationship[]
       }

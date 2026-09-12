@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { UserActionStats } from "@/components/admin/user-action-stats"
 import { AuthGuard } from "@/components/layout/auth-guard"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
+import { useAuth } from "@/lib/auth/session"
 import { useAppStore } from "@/lib/store/context"
 import { ROLE_LABELS, type UserRole } from "@/types"
 
@@ -41,8 +44,10 @@ export default function AdminUsersPage() {
 }
 
 function UserManagement() {
-  const { data, createUser, updateUserRole, setUserActive } = useAppStore()
+  const { user } = useAuth()
+  const { data, createUser, updateUserRole, setUserActive, deleteUser } = useAppStore()
   const [open, setOpen] = useState(false)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -146,13 +151,24 @@ function UserManagement() {
                   {profile.is_active ? "Active" : "Disabled"}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setUserActive(profile.id, !profile.is_active)}
-                  >
-                    {profile.is_active ? "Disable" : "Enable"}
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setUserActive(profile.id, !profile.is_active)}
+                    >
+                      {profile.is_active ? "Disable" : "Enable"}
+                    </Button>
+                    {user?.id !== profile.id && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteId(profile.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -196,7 +212,7 @@ function UserManagement() {
             </div>
             {supabaseEnabled && (
               <div className="grid gap-2">
-                <Label htmlFor="user-password">Temporary password</Label>
+                <Label htmlFor="user-password">Password</Label>
                 <Input
                   id="user-password"
                   type="password"
@@ -235,6 +251,22 @@ function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Delete this user?"
+        description="They will lose access. Their orders and actions stay, reassigned to another team member. This cannot be undone."
+        confirmLabel="Delete user"
+        destructive
+        onOpenChange={(next) => {
+          if (!next) setDeleteId(null)
+        }}
+        onConfirm={async () => {
+          if (!deleteId) return
+          await deleteUser(deleteId)
+          setDeleteId(null)
+        }}
+      />
+      <UserActionStats />
     </div>
   )
 }

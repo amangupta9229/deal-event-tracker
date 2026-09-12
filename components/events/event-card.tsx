@@ -1,19 +1,25 @@
 "use client"
 
+import { useState } from "react"
 import { AssigneeSelect } from "@/components/assignees/assignee-select"
 import { CommentDialog } from "@/components/events/comment-dialog"
 import { PriorityBadge } from "@/components/events/priority-badge"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth/session"
 import { notifyUserAssigned } from "@/lib/email/notify-assignment"
 import { notifyComment } from "@/lib/email/notify-creator"
 import { formatCompactDateTime } from "@/lib/format"
-import { canAssign, canComment, canResolveEvent } from "@/lib/permissions"
+import {
+  canAssign,
+  canComment,
+  canDeleteEvent,
+  canResolveEvent,
+} from "@/lib/permissions"
 import { commentMailRecipients, getEventComments, profileName } from "@/lib/queries"
 import { useAppStore } from "@/lib/store/context"
 import { cn } from "@/lib/utils"
-import { STATUS_LABELS, type DealEvent } from "@/types"
-import { useState } from "react"
+import { STATUS_LABELS, type DealEvent, type EventStatus } from "@/types"
 
 const statusClass: Record<DealEvent["status"], string> = {
   open: "text-emerald-400",
@@ -21,10 +27,14 @@ const statusClass: Record<DealEvent["status"], string> = {
   na: "text-muted-foreground",
 }
 
+type PendingAction = Extract<EventStatus, "closed" | "na"> | "delete" | null
+
 export function EventCard({ event }: { event: DealEvent }) {
   const { user } = useAuth()
-  const { data, setEventStatus, setEventAssignee, addComment } = useAppStore()
+  const { data, setEventStatus, setEventAssignee, addComment, deleteEvent } =
+    useAppStore()
   const [commentOpen, setCommentOpen] = useState(false)
+  const [pending, setPending] = useState<PendingAction>(null)
   const creator = data.profiles.find((profile) => profile.id === event.created_by)
   const deal = data.deals.find((item) => item.id === event.deal_id)
   const comments = getEventComments(data, event.id)
@@ -32,6 +42,7 @@ export function EventCard({ event }: { event: DealEvent }) {
   const canUserComment = !!user && canComment(user.role) && isOpen
   const canUserResolve = !!user && canResolveEvent(user.role) && isOpen
   const canChangeAssignee = !!user && canAssign(user.role)
+  const canUserDelete = !!user && canDeleteEvent(user.role)
 
   async function handleComment(comment: string) {
     if (!user) return
@@ -46,6 +57,38 @@ export function EventCard({ event }: { event: DealEvent }) {
       eventUrl: `${window.location.origin}/deals/${event.deal_id}#${event.id}`,
     })
   }
+
+  async function handleConfirm() {
+    if (!user || !pending) return
+    if (pending === "delete") {
+      await deleteEvent(event.id)
+    } else {
+      await setEventStatus(event.id, pending, user.id)
+    }
+    setPending(null)
+  }
+
+  const confirmCopy =
+    pending === "closed"
+      ? {
+          title: "Mark this action done?",
+          description: "It will be closed and no longer take comments.",
+          confirmLabel: "Mark done",
+          destructive: false,
+        }
+      : pending === "na"
+        ? {
+            title: "Mark this action NA?",
+            description: "It will be closed as not applicable.",
+            confirmLabel: "Mark NA",
+            destructive: false,
+          }
+        : {
+            title: "Delete this action?",
+            description: "This cannot be undone. Comments on it will be removed too.",
+            confirmLabel: "Delete",
+            destructive: true,
+          }
 
   return (
     <tr
@@ -68,6 +111,12 @@ export function EventCard({ event }: { event: DealEvent }) {
         </td>
         <td className="align-top min-w-0 px-3 py-2">
           <p className="text-sm leading-snug text-foreground">{event.description}</p>
+          {event.status !== "open" && event.done_at && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {STATUS_LABELS[event.status]} {formatCompactDateTime(event.done_at)}
+              {event.done_by ? ` by ${profileName(data, event.done_by)}` : ""}
+            </p>
+          )}
           {comments.length > 0 && (
             <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
               {comments
@@ -113,7 +162,7 @@ export function EventCard({ event }: { event: DealEvent }) {
           )}
         </td>
         <td className="align-top px-3 py-2 text-right">
-          {isOpen && (canUserComment || canUserResolve) ? (
+          {(canUserComment || canUserResolve || canUserDelete) && (
             <div className="flex flex-wrap justify-end gap-1">
               {canUserComment && (
                 <Button size="sm" variant="outline" onClick={() => setCommentOpen(true)}>
@@ -122,23 +171,29 @@ export function EventCard({ event }: { event: DealEvent }) {
               )}
               {canUserResolve && (
                 <>
-                  <Button
-                    size="sm"
-                    onClick={() => void setEventStatus(event.id, "closed", user.id)}
-                  >
+                  <Button size="sm" onClick={() => setPending("closed")}>
                     Done
                   </Button>
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => void setEventStatus(event.id, "na", user.id)}
+                    onClick={() => setPending("na")}
                   >
                     NA
                   </Button>
                 </>
               )}
+              {canUserDelete && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setPending("delete")}
+                >
+                  Delete
+                </Button>
+              )}
             </div>
-          ) : null}
+          )}
           {user && (
             <CommentDialog
               open={commentOpen}
@@ -146,6 +201,17 @@ export function EventCard({ event }: { event: DealEvent }) {
               onSubmit={handleComment}
             />
           )}
+          <ConfirmDialog
+            open={pending !== null}
+            title={confirmCopy.title}
+            description={confirmCopy.description}
+            confirmLabel={confirmCopy.confirmLabel}
+            destructive={confirmCopy.destructive}
+            onOpenChange={(open) => {
+              if (!open) setPending(null)
+            }}
+            onConfirm={handleConfirm}
+          />
         </td>
       </tr>
   )

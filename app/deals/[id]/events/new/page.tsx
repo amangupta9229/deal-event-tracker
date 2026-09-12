@@ -150,6 +150,7 @@ function AddActionForm() {
           <Label>Assigned to</Label>
           {canPickAssignee ? (
             <AssigneeSelect
+              requireConfirm={false}
               className="w-full"
               value={assigneeId}
               onChange={setAssignedTo}

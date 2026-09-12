@@ -206,6 +206,60 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const deleteEvent = useCallback((eventId: string) => {
+    setData((current) => ({
+      ...current,
+      events: current.events.filter((event) => event.id !== eventId),
+      comments: current.comments.filter((comment) => comment.event_id !== eventId),
+    }))
+  }, [])
+
+  const deleteDeal = useCallback((dealId: string) => {
+    setData((current) => {
+      const ids = new Set(
+        current.events.filter((event) => event.deal_id === dealId).map((event) => event.id)
+      )
+      return {
+        ...current,
+        deals: current.deals.filter((deal) => deal.id !== dealId),
+        events: current.events.filter((event) => event.deal_id !== dealId),
+        comments: current.comments.filter((comment) => !ids.has(comment.event_id)),
+      }
+    })
+  }, [])
+
+  const deleteUser = useCallback((userId: string) => {
+    setData((current) => {
+      const remaining = current.profiles.filter((profile) => profile.id !== userId)
+      const fallback =
+        remaining.find(
+          (profile) =>
+            profile.is_active && (profile.role === "owner" || profile.role === "team")
+        )?.id ?? remaining[0]?.id
+      if (!fallback) return current
+      const remap = (id: string | null) => (id === userId ? fallback : id)
+      return {
+        ...current,
+        profiles: remaining,
+        deals: current.deals.map((deal) => ({
+          ...deal,
+          created_by: remap(deal.created_by) ?? fallback,
+          assigned_to: remap(deal.assigned_to) ?? fallback,
+        })),
+        events: current.events.map((event) => ({
+          ...event,
+          created_by: remap(event.created_by) ?? fallback,
+          assigned_to: remap(event.assigned_to) ?? fallback,
+          done_by: remap(event.done_by),
+        })),
+        comments: current.comments.map((comment) => ({
+          ...comment,
+          author_id: remap(comment.author_id) ?? fallback,
+        })),
+      }
+    })
+  }, [])
+
   const value = useMemo<AppStoreValue>(
     () => ({
       hydrated,
@@ -220,6 +274,9 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       createUser,
       updateUserRole,
       setUserActive,
+      deleteEvent,
+      deleteDeal,
+      deleteUser,
     }),
     [
       hydrated,
@@ -234,6 +291,9 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       createUser,
       updateUserRole,
       setUserActive,
+      deleteEvent,
+      deleteDeal,
+      deleteUser,
     ]
   )
 
