@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react"
 import { DEMO_PASSWORD, SESSION_STORAGE_KEY } from "@/lib/auth/constants"
+import { clearSessionTimers, markSessionFresh, useSessionTimeout } from "@/lib/auth/session-timeout"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { useAppStore } from "@/lib/store/context"
@@ -54,6 +55,7 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
       if (!profile.is_active) return "This account is disabled."
       if (password !== DEMO_PASSWORD) return "Incorrect password."
       window.localStorage.setItem(SESSION_STORAGE_KEY, profile.id)
+      markSessionFresh()
       setUserId(profile.id)
       return null
     },
@@ -62,8 +64,11 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     window.localStorage.removeItem(SESSION_STORAGE_KEY)
+    clearSessionTimers()
     setUserId(null)
   }, [])
+
+  useSessionTimeout(!!user, logout)
 
   const value = useMemo(
     () => ({
@@ -145,14 +150,18 @@ function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       return "This account is disabled."
     }
     setUser(profile)
+    markSessionFresh()
     return null
   }, [])
 
   const logout = useCallback(async () => {
     const supabase = createBrowserSupabaseClient()
+    clearSessionTimers()
     await supabase.auth.signOut()
     setUser(null)
   }, [])
+
+  useSessionTimeout(!!user, logout)
 
   const value = useMemo(
     () => ({
