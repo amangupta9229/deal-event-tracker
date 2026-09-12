@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { AppStoreProvider } from "@/lib/store/context"
+import { toast } from "@/lib/toast"
 import type {
   AppStoreValue,
   CreateDealInput,
@@ -91,6 +92,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       throwIfError(error)
       if (!deal) throw new Error("Could not create deal.")
       await refresh()
+      toast("Order created")
       return deal
     },
     [refresh]
@@ -105,6 +107,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         .eq("id", dealId)
       throwIfError(error)
       await refresh()
+      toast(status === "archived" ? "Order archived" : "Order restored")
     },
     [refresh]
   )
@@ -118,6 +121,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         .eq("id", dealId)
       throwIfError(error)
       await refresh()
+      toast("Assignee updated")
     },
     [refresh]
   )
@@ -139,6 +143,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       throwIfError(error)
       if (!event) throw new Error("Could not create event.")
       await refresh()
+      toast("Action saved")
       return event
     },
     [refresh]
@@ -164,6 +169,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         .eq("id", eventId)
       throwIfError(error)
       await refresh()
+      toast(status === "closed" ? "Marked done" : "Marked NA")
     },
     [refresh]
   )
@@ -177,6 +183,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         .eq("id", eventId)
       throwIfError(error)
       await refresh()
+      toast("Assignee updated")
     },
     [refresh]
   )
@@ -197,6 +204,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       throwIfError(error)
       if (!saved) throw new Error("Could not save comment.")
       await refresh()
+      toast("Comment sent")
       return saved
     },
     [refresh]
@@ -219,6 +227,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         throw new Error(payload.error ?? "Could not create user.")
       }
       await refresh()
+      toast("User created")
       return payload.profile
     },
     [refresh]
@@ -234,6 +243,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       const payload = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(payload.error ?? "Could not update role.")
       await refresh()
+      toast("Role updated")
     },
     [refresh]
   )
@@ -250,6 +260,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         throw new Error(payload.error ?? "Could not update user status.")
       }
       await refresh()
+      toast(isActive ? "User enabled" : "User disabled")
     },
     [refresh]
   )
@@ -260,6 +271,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("events").delete().eq("id", eventId)
       throwIfError(error)
       await refresh()
+      toast("Action deleted")
     },
     [refresh]
   )
@@ -270,6 +282,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.from("deals").delete().eq("id", dealId)
       throwIfError(error)
       await refresh()
+      toast("Order deleted")
     },
     [refresh]
   )
@@ -282,6 +295,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       const payload = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(payload.error ?? "Could not delete user.")
       await refresh()
+      toast("User deleted")
     },
     [refresh]
   )

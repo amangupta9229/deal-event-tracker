@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { nowIso } from "@/lib/format"
 import { seedData, STORE_STORAGE_KEY, STORE_VERSION } from "@/lib/mock/seed"
 import { AppStoreProvider } from "@/lib/store/context"
+import { toast } from "@/lib/toast"
 import type { AppStoreValue, CreateDealInput, CreateEventInput, CreateUserInput } from "@/lib/store/types"
 import type {
   AppData,
@@ -59,6 +60,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       updated_at: timestamp,
     }
     setData((current) => ({ ...current, deals: [deal, ...current.deals] }))
+    toast("Order created")
     return deal
   }, [])
 
@@ -70,6 +72,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         deal.id === dealId ? { ...deal, status, updated_at: timestamp } : deal
       ),
     }))
+    toast(status === "archived" ? "Order archived" : "Order restored")
   }, [])
 
   const createEvent = useCallback((input: CreateEventInput) => {
@@ -94,6 +97,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         deal.id === input.dealId ? { ...deal, updated_at: timestamp } : deal
       ),
     }))
+    toast("Action saved")
     return event
   }, [])
 
@@ -123,6 +127,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
           ),
         }
       })
+      toast(status === "closed" ? "Marked done" : "Marked NA")
     },
     []
   )
@@ -135,6 +140,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         deal.id === dealId ? { ...deal, assigned_to: assignedTo, updated_at: timestamp } : deal
       ),
     }))
+    toast("Assignee updated")
   }, [])
 
   const setEventAssignee = useCallback((eventId: string, assignedTo: string) => {
@@ -147,6 +153,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
           : event
       ),
     }))
+    toast("Assignee updated")
   }, [])
 
   const addComment = useCallback(
@@ -164,6 +171,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         if (!existing || existing.status !== "open" || !trimmed) return current
         return { ...current, comments: [...current.comments, entry] }
       })
+      toast("Comment sent")
       return entry
     },
     []
@@ -185,6 +193,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       if (exists) return current
       return { ...current, profiles: [...current.profiles, profile] }
     })
+    toast("User created")
     return profile
   }, [])
 
@@ -195,6 +204,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         profile.id === userId ? { ...profile, role } : profile
       ),
     }))
+    toast("Role updated")
   }, [])
 
   const setUserActive = useCallback((userId: string, isActive: boolean) => {
@@ -204,6 +214,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         profile.id === userId ? { ...profile, is_active: isActive } : profile
       ),
     }))
+    toast(isActive ? "User enabled" : "User disabled")
   }, [])
 
   const deleteEvent = useCallback((eventId: string) => {
@@ -212,6 +223,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       events: current.events.filter((event) => event.id !== eventId),
       comments: current.comments.filter((comment) => comment.event_id !== eventId),
     }))
+    toast("Action deleted")
   }, [])
 
   const deleteDeal = useCallback((dealId: string) => {
@@ -226,6 +238,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         comments: current.comments.filter((comment) => !ids.has(comment.event_id)),
       }
     })
+    toast("Order deleted")
   }, [])
 
   const deleteUser = useCallback((userId: string) => {
@@ -258,6 +271,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         })),
       }
     })
+    toast("User deleted")
   }, [])
 
   const value = useMemo<AppStoreValue>(
