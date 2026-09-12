@@ -15,11 +15,13 @@ export interface CreateEventInput {
   description: string
   priority: EventPriority
   createdBy: string
+  assignedTo: string
 }
 
 export interface CreateDealInput {
   name: string
   createdBy: string
+  assignedTo: string
 }
 
 export interface CreateUserInput {
@@ -34,12 +36,14 @@ export interface AppStoreValue {
   data: AppData
   createDeal: (input: CreateDealInput) => Deal | Promise<Deal>
   updateDealStatus: (dealId: string, status: DealStatus) => void | Promise<void>
+  setDealAssignee: (dealId: string, assignedTo: string) => void | Promise<void>
   createEvent: (input: CreateEventInput) => DealEvent | Promise<DealEvent>
   setEventStatus: (
     eventId: string,
     status: Extract<EventStatus, "closed" | "na">,
     doneBy: string
   ) => void | Promise<void>
+  setEventAssignee: (eventId: string, assignedTo: string) => void | Promise<void>
   addComment: (
     eventId: string,
     authorId: string,

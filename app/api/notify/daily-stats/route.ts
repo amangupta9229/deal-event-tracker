@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const { error } = await resend.emails.send({
     from,
     to,
-    subject: "Defpro Global — open tickets",
+    subject: "Defpro Global — all open orders & actions",
     html,
   })
 

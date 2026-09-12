@@ -19,7 +19,7 @@ export function DefproMark({ className }: { className?: string }) {
           Defpro Global
         </span>
         <span className="block text-[11px] text-muted-foreground">
-          Deal Event Tracker
+          Orders & Actions
         </span>
       </span>
     </span>

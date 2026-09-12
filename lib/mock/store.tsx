@@ -54,6 +54,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       name: input.name.trim(),
       status: "active",
       created_by: input.createdBy,
+      assigned_to: input.assignedTo,
       created_at: timestamp,
       updated_at: timestamp,
     }
@@ -80,6 +81,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       priority: input.priority,
       status: "open",
       created_by: input.createdBy,
+      assigned_to: input.assignedTo,
       created_at: timestamp,
       updated_at: timestamp,
       done_by: null,
@@ -124,6 +126,28 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
     },
     []
   )
+
+  const setDealAssignee = useCallback((dealId: string, assignedTo: string) => {
+    const timestamp = nowIso()
+    setData((current) => ({
+      ...current,
+      deals: current.deals.map((deal) =>
+        deal.id === dealId ? { ...deal, assigned_to: assignedTo, updated_at: timestamp } : deal
+      ),
+    }))
+  }, [])
+
+  const setEventAssignee = useCallback((eventId: string, assignedTo: string) => {
+    const timestamp = nowIso()
+    setData((current) => ({
+      ...current,
+      events: current.events.map((event) =>
+        event.id === eventId
+          ? { ...event, assigned_to: assignedTo, updated_at: timestamp }
+          : event
+      ),
+    }))
+  }, [])
 
   const addComment = useCallback(
     (eventId: string, authorId: string, comment: string) => {
@@ -188,8 +212,10 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       data,
       createDeal,
       updateDealStatus,
+      setDealAssignee,
       createEvent,
       setEventStatus,
+      setEventAssignee,
       addComment,
       createUser,
       updateUserRole,
@@ -200,8 +226,10 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
       data,
       createDeal,
       updateDealStatus,
+      setDealAssignee,
       createEvent,
       setEventStatus,
+      setEventAssignee,
       addComment,
       createUser,
       updateUserRole,

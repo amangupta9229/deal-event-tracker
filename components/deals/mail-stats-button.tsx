@@ -59,7 +59,7 @@ export function MailStatsButton() {
   return (
     <div className="flex flex-col items-end gap-1">
       <Button variant="outline" disabled={sending} onClick={() => void handleSend()}>
-        Email open-ticket stats
+        Email open actions
       </Button>
       {message && (
         <p className="max-w-xs text-right text-xs text-muted-foreground">{message}</p>

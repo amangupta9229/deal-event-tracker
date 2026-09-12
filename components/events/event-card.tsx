@@ -1,13 +1,15 @@
 "use client"
 
+import { AssigneeSelect } from "@/components/assignees/assignee-select"
 import { CommentDialog } from "@/components/events/comment-dialog"
 import { PriorityBadge } from "@/components/events/priority-badge"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth/session"
+import { notifyUserAssigned } from "@/lib/email/notify-assignment"
 import { notifyComment } from "@/lib/email/notify-creator"
 import { formatCompactDateTime } from "@/lib/format"
-import { canComment, canResolveEvent } from "@/lib/permissions"
-import { commentMailRecipients, getEventComments } from "@/lib/queries"
+import { canAssign, canComment, canResolveEvent } from "@/lib/permissions"
+import { commentMailRecipients, getEventComments, profileName } from "@/lib/queries"
 import { useAppStore } from "@/lib/store/context"
 import { cn } from "@/lib/utils"
 import { STATUS_LABELS, type DealEvent } from "@/types"
@@ -21,7 +23,7 @@ const statusClass: Record<DealEvent["status"], string> = {
 
 export function EventCard({ event }: { event: DealEvent }) {
   const { user } = useAuth()
-  const { data, setEventStatus, addComment } = useAppStore()
+  const { data, setEventStatus, setEventAssignee, addComment } = useAppStore()
   const [commentOpen, setCommentOpen] = useState(false)
   const creator = data.profiles.find((profile) => profile.id === event.created_by)
   const deal = data.deals.find((item) => item.id === event.deal_id)
@@ -29,6 +31,7 @@ export function EventCard({ event }: { event: DealEvent }) {
   const isOpen = event.status === "open"
   const canUserComment = !!user && canComment(user.role) && isOpen
   const canUserResolve = !!user && canResolveEvent(user.role) && isOpen
+  const canChangeAssignee = !!user && canAssign(user.role)
 
   async function handleComment(comment: string) {
     if (!user) return
@@ -36,7 +39,7 @@ export function EventCard({ event }: { event: DealEvent }) {
     const recipients = commentMailRecipients(data, event, user.id)
     await notifyComment({
       to: recipients,
-      dealName: deal?.name ?? "Deal",
+      dealName: deal?.name ?? "Order",
       eventDescription: event.description,
       comment,
       authorName: user.name,
@@ -83,6 +86,31 @@ export function EventCard({ event }: { event: DealEvent }) {
         </td>
         <td className="align-top whitespace-nowrap px-3 py-2 text-xs text-muted-foreground">
           {formatCompactDateTime(event.created_at)}
+        </td>
+        <td className="align-top px-3 py-2">
+          {canChangeAssignee ? (
+            <AssigneeSelect
+              value={event.assigned_to}
+              onChange={(next) => {
+                if (next === event.assigned_to) return
+                void (async () => {
+                  await setEventAssignee(event.id, next)
+                  if (!user) return
+                  await notifyUserAssigned({
+                    actorId: user.id,
+                    actorName: user.name,
+                    assignee: data.profiles.find((profile) => profile.id === next),
+                    orderName: deal?.name ?? "Order",
+                    actionDescription: event.description,
+                    url: `${window.location.origin}/deals/${event.deal_id}#${event.id}`,
+                    kind: "action",
+                  })
+                })()
+              }}
+            />
+          ) : (
+            <span className="text-xs">{profileName(data, event.assigned_to)}</span>
+          )}
         </td>
         <td className="align-top px-3 py-2 text-right">
           {isOpen && (canUserComment || canUserResolve) ? (

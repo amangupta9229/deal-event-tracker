@@ -29,10 +29,10 @@ function NavLinks({
   if (!user) return null
 
   const items = [
-    { href: "/deals", label: "Deals", icon: Briefcase, show: true },
+    { href: "/deals", label: "Orders", icon: Briefcase, show: true },
     {
       href: "/pending-reviews",
-      label: "Open Events",
+      label: "Open actions",
       icon: Inbox,
       show: canSeeOpenEventsInbox(user.role),
     },

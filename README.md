@@ -1,6 +1,6 @@
 # Deal Event Tracker
 
-Internal app for Defpro Global: team members log deal events, owners close them, and a daily email lists everything still open.
+Internal app for Defpro Global: team members log **actions** on **orders**, owners close them, and daily email covers everything still open. URLs stay under `/deals`.
 
 ## Local mock mode (no Supabase)
 
@@ -33,13 +33,15 @@ Session and mock data persist in `localStorage`. Clear site data to reset.
 - Resend for email
 - Vercel for hosting and cron
 
-## Roles and event status
+## Roles, assignment, and status
 
-- **Team:** view deals, create events, comment on **open** events.
-- **Owner:** same, plus **Done** (`closed`) and **NA**. Comment mail goes to the event creator.
-- **Admin:** manage deals and users, plus owner actions.
+- **Team:** view orders, create actions, comment on **open** actions. Cannot change Assigned to.
+- **Owner:** same, plus **Done** (`closed`) and **NA**, plus change Assigned to on orders and actions.
+- **Admin:** manage orders and users, plus owner actions. Admins are not in the Assigned to list.
 
-Event status is **open**, **closed**, or **na**. Closed/NA events cannot be commented on.
+Assigned to is **required** and independent on the order and the action. Only active **owners and team** can be picked. When a team member creates an action, it inherits the order assignee.
+
+Action status is **open**, **closed**, or **na**. Closed/NA actions cannot be commented on.
 
 ## Environment variables
 
@@ -64,7 +66,7 @@ Until a company sending domain is verified in Resend, keep `EMAIL_FROM` on `onbo
 
 1. Create a Supabase project.
 2. Keep **Email** auth enabled. Turn **off** public signup. Users are created by an admin (or the first user below).
-3. Run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) in the SQL editor.
+3. Run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) in the SQL editor, then [`supabase/migrations/0002_assigned_to.sql`](supabase/migrations/0002_assigned_to.sql).
 4. Create the first admin in **Authentication → Users → Add user** (email + password, auto-confirm).
 5. Promote that user:
 
@@ -76,11 +78,18 @@ where email = 'you@example.com';
 
 The `handle_new_user` trigger copies Auth users into `profiles`. Admin-created users get their name and role from metadata.
 
-## Daily email
+## Email
 
 Vercel Cron calls `GET /api/cron/daily-summary` at **08:00 India Standard Time** (`30 2 * * *` UTC). Set `CRON_SECRET`; Vercel sends `Authorization: Bearer $CRON_SECRET`.
 
-The email lists every **open** event, sorted Urgent → High → Normal → Low, oldest first within a priority. Recipients are every **active** admin, owner, and team member.
+At 8am (and from **Email open actions**):
+
+- **Owners and admin** get every open action (`Defpro Global — all open orders & actions`).
+- Each assignee gets a personal list (`Defpro Global — assigned to you`).
+
+Assigning or changing Assigned to also emails the new assignee immediately.
+
+A comment emails the action creator (if not the author), plus the **order assignee** and **action assignee**. Team comments also go to active owners.
 
 Change the schedule in [`vercel.json`](vercel.json) if needed.
 
@@ -100,7 +109,7 @@ components/           deals, events, layout, ui
 lib/auth/             session and admin checks
 lib/supabase/         browser, server, service-role clients
 lib/store/            mock vs Supabase data store
-lib/email/            daily summary and comment mail
+lib/email/            daily summary, assignment, and comment mail
 supabase/migrations/  schema, constraints, RLS
 proxy.ts              refreshes the Supabase auth session
 ```

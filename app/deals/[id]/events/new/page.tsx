@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { AssigneeSelect } from "@/components/assignees/assignee-select"
 import { AuthGuard } from "@/components/layout/auth-guard"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -15,31 +16,48 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/lib/auth/session"
+import { notifyUserAssigned } from "@/lib/email/notify-assignment"
+import { canAssign } from "@/lib/permissions"
+import { defaultActionAssignee, profileName } from "@/lib/queries"
 import { useAppStore } from "@/lib/store/context"
 import { PRIORITY_LABELS, type EventPriority } from "@/types"
 
 export default function NewEventPage() {
   return (
     <AuthGuard>
-      <AddEventForm />
+      <AddActionForm />
     </AuthGuard>
   )
 }
 
-function AddEventForm() {
+function AddActionForm() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { user } = useAuth()
   const { data, createEvent } = useAppStore()
   const deal = data.deals.find((item) => item.id === params.id)
+  const inheritedAssignee = useMemo(
+    () =>
+      deal && user
+        ? defaultActionAssignee(data, deal.assigned_to, user.id)
+        : "",
+    [data, deal, user]
+  )
   const [description, setDescription] = useState("")
   const [priority, setPriority] = useState<EventPriority>("normal")
+  const [assignedTo, setAssignedTo] = useState(inheritedAssignee)
   const [error, setError] = useState<string | null>(null)
+  const canPickAssignee = !!user && canAssign(user.role)
+  const assigneeId = canPickAssignee ? assignedTo || inheritedAssignee : inheritedAssignee
+
+  useEffect(() => {
+    if (!assignedTo && inheritedAssignee) setAssignedTo(inheritedAssignee)
+  }, [assignedTo, inheritedAssignee])
 
   if (!deal) {
     return (
       <div className="mx-auto max-w-xl">
-        <p className="text-sm text-muted-foreground">Deal not found.</p>
+        <p className="text-sm text-muted-foreground">Order not found.</p>
       </div>
     )
   }
@@ -52,16 +70,30 @@ function AddEventForm() {
       setError("Description is required.")
       return
     }
+    if (!assigneeId) {
+      setError("Assigned to is required.")
+      return
+    }
     try {
-      await createEvent({
+      const saved = await createEvent({
         dealId: deal.id,
         description: trimmed,
         priority,
         createdBy: user.id,
+        assignedTo: assigneeId,
+      })
+      await notifyUserAssigned({
+        actorId: user.id,
+        actorName: user.name,
+        assignee: data.profiles.find((profile) => profile.id === assigneeId),
+        orderName: deal.name,
+        actionDescription: saved.description,
+        url: `${window.location.origin}/deals/${deal.id}#${saved.id}`,
+        kind: "action",
       })
       router.push(`/deals/${deal.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save event.")
+      setError(err instanceof Error ? err.message : "Could not save action.")
     }
   }
 
@@ -73,14 +105,14 @@ function AddEventForm() {
       >
         ← {deal.name}
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight">Add Event</h1>
+      <h1 className="mt-4 text-2xl font-semibold tracking-tight">Add action</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Log an important update against this deal.
+        Log an important update against this order.
       </p>
 
       <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
         <div className="grid gap-2">
-          <Label htmlFor="deal">Deal</Label>
+          <Label htmlFor="deal">Order</Label>
           <InputLocked value={deal.name} />
         </div>
         <div className="grid gap-2">
@@ -113,6 +145,18 @@ function AddEventForm() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="grid gap-2">
+          <Label>Assigned to</Label>
+          {canPickAssignee ? (
+            <AssigneeSelect
+              className="w-full"
+              value={assigneeId}
+              onChange={setAssignedTo}
+            />
+          ) : (
+            <p className="text-sm">{profileName(data, assigneeId)}</p>
+          )}
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">

@@ -1,6 +1,6 @@
 import type { AppData } from "@/types"
 
-export const STORE_VERSION = 2
+export const STORE_VERSION = 3
 export const STORE_STORAGE_KEY = "det-app-data"
 
 export const seedData: AppData = {
@@ -53,6 +53,7 @@ export const seedData: AppData = {
       name: "Silica Gel – AIIMS",
       status: "active",
       created_by: "user-admin",
+      assigned_to: "user-rahul",
       created_at: "2026-08-01T04:30:00.000Z",
       updated_at: "2026-09-05T04:30:00.000Z",
     },
@@ -61,6 +62,7 @@ export const seedData: AppData = {
       name: "Activated Carbon – DRDO",
       status: "active",
       created_by: "user-admin",
+      assigned_to: "user-meera",
       created_at: "2026-08-12T06:00:00.000Z",
       updated_at: "2026-09-06T03:00:00.000Z",
     },
@@ -69,6 +71,7 @@ export const seedData: AppData = {
       name: "Chemical XYZ – Railways",
       status: "active",
       created_by: "user-admin",
+      assigned_to: "user-owner-1",
       created_at: "2026-08-20T07:15:00.000Z",
       updated_at: "2026-09-04T09:00:00.000Z",
     },
@@ -82,6 +85,7 @@ export const seedData: AppData = {
       priority: "urgent",
       status: "open",
       created_by: "user-rahul",
+      assigned_to: "user-rahul",
       created_at: "2026-09-04T09:15:00.000Z",
       updated_at: "2026-09-04T09:15:00.000Z",
       done_by: null,
@@ -94,6 +98,7 @@ export const seedData: AppData = {
       priority: "high",
       status: "open",
       created_by: "user-rahul",
+      assigned_to: "user-owner-1",
       created_at: "2026-09-05T04:30:00.000Z",
       updated_at: "2026-09-05T04:30:00.000Z",
       done_by: null,
@@ -106,6 +111,7 @@ export const seedData: AppData = {
       priority: "normal",
       status: "closed",
       created_by: "user-meera",
+      assigned_to: "user-meera",
       created_at: "2026-09-02T06:00:00.000Z",
       updated_at: "2026-09-03T08:00:00.000Z",
       done_by: "user-owner-1",
@@ -118,6 +124,7 @@ export const seedData: AppData = {
       priority: "high",
       status: "open",
       created_by: "user-meera",
+      assigned_to: "user-meera",
       created_at: "2026-09-03T11:00:00.000Z",
       updated_at: "2026-09-03T11:00:00.000Z",
       done_by: null,
@@ -130,6 +137,7 @@ export const seedData: AppData = {
       priority: "urgent",
       status: "open",
       created_by: "user-rahul",
+      assigned_to: "user-rahul",
       created_at: "2026-09-06T03:00:00.000Z",
       updated_at: "2026-09-06T03:00:00.000Z",
       done_by: null,
@@ -142,6 +150,7 @@ export const seedData: AppData = {
       priority: "low",
       status: "na",
       created_by: "user-meera",
+      assigned_to: "user-owner-2",
       created_at: "2026-08-28T05:00:00.000Z",
       updated_at: "2026-08-29T06:00:00.000Z",
       done_by: "user-admin",
@@ -154,6 +163,7 @@ export const seedData: AppData = {
       priority: "high",
       status: "open",
       created_by: "user-rahul",
+      assigned_to: "user-owner-1",
       created_at: "2026-09-01T08:00:00.000Z",
       updated_at: "2026-09-01T08:00:00.000Z",
       done_by: null,
@@ -166,6 +176,7 @@ export const seedData: AppData = {
       priority: "normal",
       status: "open",
       created_by: "user-meera",
+      assigned_to: "user-meera",
       created_at: "2026-09-04T09:00:00.000Z",
       updated_at: "2026-09-04T09:00:00.000Z",
       done_by: null,

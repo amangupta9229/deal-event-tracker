@@ -60,8 +60,8 @@ export function CommentDialog({
         <DialogHeader>
           <DialogTitle>Add comment</DialogTitle>
           <DialogDescription>
-            Comments are only allowed while the event is open. The other side
-            gets an email.
+            Comments are only allowed while the action is open. The creator,
+            order assignee, and action assignee get an email.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">

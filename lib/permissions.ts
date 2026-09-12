@@ -12,6 +12,10 @@ export function canManageUsers(role: UserRole): boolean {
   return role === "admin"
 }
 
+export function canAssign(role: UserRole): boolean {
+  return role === "owner" || role === "admin"
+}
+
 export function canManageDeals(role: UserRole): boolean {
   return role === "admin"
 }

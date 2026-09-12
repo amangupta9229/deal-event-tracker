@@ -53,7 +53,7 @@ export default function LoginPage() {
           Sign in
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Internal deal events for Defpro Global Pvt Ltd.
+          Internal orders and actions for Defpro Global Pvt Ltd.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>

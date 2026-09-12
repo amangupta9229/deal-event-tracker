@@ -11,12 +11,12 @@ import { canSendStatsEmail } from "@/lib/permissions"
 export default function PendingReviewsPage() {
   return (
     <AuthGuard roles={["admin", "owner"]}>
-      <OpenEvents />
+      <OpenActions />
     </AuthGuard>
   )
 }
 
-function OpenEvents() {
+function OpenActions() {
   const { user } = useAuth()
   const { data } = useAppStore()
   const events = sortOpenEventsByPriority(
@@ -27,9 +27,9 @@ function OpenEvents() {
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Open Events</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Open actions</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Open tickets, urgent first, oldest first within a priority.
+            Open actions, urgent first, oldest first within a priority.
           </p>
         </div>
         {user && canSendStatsEmail(user.role) && <MailStatsButton />}
@@ -38,7 +38,7 @@ function OpenEvents() {
       <section className="mt-4 overflow-x-auto rounded-lg border">
         {events.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
-            There are no open events.
+            There are no open actions.
           </div>
         ) : (
           <table className="w-full table-fixed text-left">
@@ -46,6 +46,7 @@ function OpenEvents() {
               <col className="w-[108px]" />
               <col />
               <col className="w-[128px]" />
+              <col className="w-[148px]" />
               <col className="w-[148px]" />
               <col className="w-[200px]" />
             </colgroup>
@@ -55,7 +56,8 @@ function OpenEvents() {
                 <th className="px-3 py-2 font-medium">Description</th>
                 <th className="px-3 py-2 font-medium">Created by</th>
                 <th className="px-3 py-2 font-medium">Created at</th>
-                <th className="px-3 py-2 text-right font-medium">Action</th>
+                <th className="px-3 py-2 font-medium">Assigned to</th>
+                <th className="px-3 py-2 text-right font-medium">Update</th>
               </tr>
             </thead>
             <tbody>

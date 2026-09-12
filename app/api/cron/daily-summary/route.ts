@@ -1,9 +1,13 @@
 import { Resend } from "resend"
 import { NextResponse } from "next/server"
-import { buildDailySummaryHtml } from "@/lib/email/daily-summary"
+import { buildAssignedDigestHtml, buildDailySummaryHtml } from "@/lib/email/daily-summary"
 import { createServiceRoleClient } from "@/lib/supabase/admin"
 import { isSupabaseConfigured } from "@/lib/supabase/env"
-import { getStatsEmailRecipients } from "@/lib/queries"
+import {
+  getAllOpenDigestRecipients,
+  getAssignableProfiles,
+  itemsAssignedToUser,
+} from "@/lib/queries"
 import type { AppData } from "@/types"
 
 export const runtime = "nodejs"
@@ -58,30 +62,46 @@ export async function GET(request: Request) {
   }
 
   const data: AppData = {
-    version: 2,
+    version: 3,
     profiles: profiles.data ?? [],
     deals: deals.data ?? [],
     events: events.data ?? [],
     comments: comments.data ?? [],
   }
 
-  const recipients = getStatsEmailRecipients(data)
-  if (recipients.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, reason: "no_recipients" })
-  }
-
+  const digestRecipients = getAllOpenDigestRecipients(data)
   const html = buildDailySummaryHtml(data, appUrl)
   const resend = new Resend(apiKey)
-  const { error } = await resend.emails.send({
-    from,
-    to: recipients,
-    subject: "Defpro Global — open tickets",
-    html,
-  })
+  let sent = 0
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (digestRecipients.length > 0) {
+    const { error } = await resend.emails.send({
+      from,
+      to: digestRecipients,
+      subject: "Defpro Global — all open orders & actions",
+      html,
+    })
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    sent += digestRecipients.length
   }
 
-  return NextResponse.json({ ok: true, sent: recipients.length })
+  for (const profile of getAssignableProfiles(data)) {
+    const assigned = itemsAssignedToUser(data, profile.id)
+    if (assigned.orders.length === 0 && assigned.actions.length === 0) continue
+    if (!profile.email.includes("@")) continue
+    const { error } = await resend.emails.send({
+      from,
+      to: profile.email,
+      subject: "Defpro Global — assigned to you",
+      html: buildAssignedDigestHtml(data, appUrl, profile.id),
+    })
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    sent += 1
+  }
+
+  return NextResponse.json({ ok: true, sent })
 }

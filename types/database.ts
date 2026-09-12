@@ -47,6 +47,7 @@ export interface Database {
           name: string
           status: DealStatus
           created_by: string
+          assigned_to: string
           created_at: string
           updated_at: string
         }
@@ -55,12 +56,14 @@ export interface Database {
           name: string
           status?: DealStatus
           created_by: string
+          assigned_to: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           name?: string
           status?: DealStatus
+          assigned_to?: string
           updated_at?: string
         }
         Relationships: Relationship[]
@@ -73,6 +76,7 @@ export interface Database {
           priority: EventPriority
           status: EventStatus
           created_by: string
+          assigned_to: string
           created_at: string
           updated_at: string
           done_by: string | null
@@ -85,6 +89,7 @@ export interface Database {
           priority?: EventPriority
           status?: EventStatus
           created_by: string
+          assigned_to: string
           created_at?: string
           updated_at?: string
           done_by?: string | null
@@ -92,6 +97,7 @@ export interface Database {
         }
         Update: {
           status?: EventStatus
+          assigned_to?: string
           done_by?: string | null
           done_at?: string | null
           updated_at?: string

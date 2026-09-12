@@ -1,26 +1,26 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
-import { buildOwnerCommentEmailHtml } from "@/lib/email/owner-comment"
+import { buildAssignmentEmailHtml } from "@/lib/email/assignment"
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
     to?: string | string[]
-    dealName?: string
-    eventDescription?: string
-    comment?: string
-    authorName?: string
-    reviewerName?: string
-    eventUrl?: string
+    title?: string
+    intro?: string
+    orderName?: string
+    actionDescription?: string | null
+    assigneeName?: string
+    url?: string
+    subject?: string
   }
 
   const recipients = (Array.isArray(body.to) ? body.to : [body.to ?? ""])
     .map((item) => item.trim())
     .filter((item) => item.includes("@"))
-  const comment = body.comment?.trim() ?? ""
-  if (recipients.length === 0 || !comment) {
-    return NextResponse.json({ error: "Missing recipient or comment." }, { status: 400 })
+  if (recipients.length === 0) {
+    return NextResponse.json({ error: "Missing recipient." }, { status: 400 })
   }
 
   const apiKey = process.env.RESEND_API_KEY
@@ -29,19 +29,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, skipped: true })
   }
 
-  const html = buildOwnerCommentEmailHtml({
-    dealName: body.dealName?.trim() || "Order",
-    eventDescription: body.eventDescription?.trim() || "",
-    comment,
-    authorName: body.authorName?.trim() || body.reviewerName?.trim() || "A teammate",
-    eventUrl: body.eventUrl?.trim() || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  const html = buildAssignmentEmailHtml({
+    title: body.title?.trim() || "Assignment updated",
+    intro: body.intro?.trim() || "An assignment was updated.",
+    orderName: body.orderName?.trim() || "Order",
+    actionDescription: body.actionDescription,
+    assigneeName: body.assigneeName?.trim() || "Someone",
+    url: body.url?.trim() || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   })
-
   const resend = new Resend(apiKey)
   const { error } = await resend.emails.send({
     from,
     to: recipients,
-    subject: "Defpro Global — new comment on an action",
+    subject: body.subject?.trim() || "Defpro Global — assigned to you",
     html,
   })
 

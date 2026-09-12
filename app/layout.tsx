@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Defpro Global · Deal Event Tracker",
+  title: "Defpro Global · Orders & Actions",
   description:
-    "Defpro Global internal tracker for deal events, owner reviews, and daily follow-up.",
+    "Defpro Global internal tracker for orders, actions, owner reviews, and daily follow-up.",
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

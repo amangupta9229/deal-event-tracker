@@ -12,7 +12,7 @@ import type {
 import type { AppData, DealStatus, EventStatus, UserRole } from "@/types"
 
 const emptyData: AppData = {
-  version: 2,
+  version: 3,
   profiles: [],
   deals: [],
   events: [],
@@ -54,7 +54,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
     }
 
     setData({
-      version: 2,
+      version: 3,
       profiles: profiles.data ?? [],
       deals: deals.data ?? [],
       events: events.data ?? [],
@@ -84,6 +84,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
         .insert({
           name: input.name.trim(),
           created_by: input.createdBy,
+          assigned_to: input.assignedTo,
         })
         .select()
         .single()
@@ -108,6 +109,19 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
     [refresh]
   )
 
+  const setDealAssignee = useCallback(
+    async (dealId: string, assignedTo: string) => {
+      const supabase = createBrowserSupabaseClient()
+      const { error } = await supabase
+        .from("deals")
+        .update({ assigned_to: assignedTo })
+        .eq("id", dealId)
+      throwIfError(error)
+      await refresh()
+    },
+    [refresh]
+  )
+
   const createEvent = useCallback(
     async (input: CreateEventInput) => {
       const supabase = createBrowserSupabaseClient()
@@ -118,6 +132,7 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
           description: input.description.trim(),
           priority: input.priority,
           created_by: input.createdBy,
+          assigned_to: input.assignedTo,
         })
         .select()
         .single()
@@ -146,6 +161,19 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
           done_by: user.id,
           done_at: new Date().toISOString(),
         })
+        .eq("id", eventId)
+      throwIfError(error)
+      await refresh()
+    },
+    [refresh]
+  )
+
+  const setEventAssignee = useCallback(
+    async (eventId: string, assignedTo: string) => {
+      const supabase = createBrowserSupabaseClient()
+      const { error } = await supabase
+        .from("events")
+        .update({ assigned_to: assignedTo })
         .eq("id", eventId)
       throwIfError(error)
       await refresh()
@@ -232,8 +260,10 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       data,
       createDeal,
       updateDealStatus,
+      setDealAssignee,
       createEvent,
       setEventStatus,
+      setEventAssignee,
       addComment,
       createUser,
       updateUserRole,
@@ -244,8 +274,10 @@ export function SupabaseStoreProvider({ children }: { children: ReactNode }) {
       data,
       createDeal,
       updateDealStatus,
+      setDealAssignee,
       createEvent,
       setEventStatus,
+      setEventAssignee,
       addComment,
       createUser,
       updateUserRole,

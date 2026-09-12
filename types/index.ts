@@ -17,6 +17,7 @@ export interface Deal {
   name: string
   status: DealStatus
   created_by: string
+  assigned_to: string
   created_at: string
   updated_at: string
 }
@@ -28,6 +29,7 @@ export interface DealEvent {
   priority: EventPriority
   status: EventStatus
   created_by: string
+  assigned_to: string
   created_at: string
   updated_at: string
   done_by: string | null
