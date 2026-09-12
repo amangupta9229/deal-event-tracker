@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { UserActionStats } from "@/components/admin/user-action-stats"
 import { AuthGuard } from "@/components/layout/auth-guard"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
@@ -266,7 +265,6 @@ function UserManagement() {
           setDeleteId(null)
         }}
       />
-      <UserActionStats />
     </div>
   )
 }
