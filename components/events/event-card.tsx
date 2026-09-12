@@ -118,16 +118,13 @@ export function EventCard({ event }: { event: DealEvent }) {
             </p>
           )}
           {comments.length > 0 && (
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-              {comments
-                .map((item) => {
-                  const author = data.profiles.find(
-                    (profile) => profile.id === item.author_id
-                  )
-                  return `${author?.name ?? "Someone"}: “${item.comment}”`
-                })
-                .join(" · ")}
-            </p>
+            <button
+              type="button"
+              className="mt-1 text-left text-xs text-muted-foreground hover:text-foreground hover:underline"
+              onClick={() => setCommentOpen(true)}
+            >
+              {comments.length} {comments.length === 1 ? "comment" : "comments"} — open thread
+            </button>
           )}
         </td>
         <td className="align-top px-3 py-2 text-xs text-foreground">
@@ -162,11 +159,11 @@ export function EventCard({ event }: { event: DealEvent }) {
           )}
         </td>
         <td className="align-top px-3 py-2 text-right">
-          {(canUserComment || canUserResolve || canUserDelete) && (
+          {(canUserComment || canUserResolve || canUserDelete || !!user) && (
             <div className="flex flex-wrap justify-end gap-1">
-              {canUserComment && (
+              {user && (
                 <Button size="sm" variant="outline" onClick={() => setCommentOpen(true)}>
-                  Comment
+                  {comments.length > 0 ? `Comments (${comments.length})` : "Comments"}
                 </Button>
               )}
               {canUserResolve && (
@@ -199,6 +196,9 @@ export function EventCard({ event }: { event: DealEvent }) {
               open={commentOpen}
               onOpenChange={setCommentOpen}
               onSubmit={handleComment}
+              comments={comments}
+              actionDescription={event.description}
+              canReply={canUserComment}
             />
           )}
           <ConfirmDialog
